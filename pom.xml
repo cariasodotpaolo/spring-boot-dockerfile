@@ -17,6 +17,11 @@
         <java.version>1.8</java.version>
         <skip.integration.test>true</skip.integration.test>
         <spring.boot.goal>repackage</spring.boot.goal>
+        <docker.host></docker.host>
+        <docker.port></docker.port>
+        <docker.registry.host></docker.registry.host>
+        <docker.registry.port></docker.registry.port>
+        <image.base>${env.DOCKER_REGISTRY_HOST}/some/path/app-base-image:1.0.0</image.base>
     </properties>
 
     <parent>
@@ -95,24 +100,24 @@
 
             <!-- DOCKER BUILD USING SPOTIFY PLUGIN -->
             <plugin>
-                <groupId>com.spotify</groupId>
-                <artifactId>dockerfile-maven-plugin</artifactId>
-                <version>1.4.0</version>
-                <executions>
-                    <execution>
-                        <id>default</id>
-                        <goals>
-                            <goal>build</goal>
-                            <goal>push</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.30.0</version>
                 <configuration>
-                    <repository>${project.artifactId}</repository>
-                    <tag>${project.version}</tag>
-                    <buildArgs>
-                        <JAR_FILE>${project.artifactId}-${project.version}.${project.packaging}</JAR_FILE>
-                    </buildArgs>
+                    <dockerHost>tcp://${docker.host}:${docker.port}</dockerHost>
+                    <useColor>true</useColor>
+                    <images>
+                        <image>
+                            <alias>${appName}</alias>
+                            <build>
+                                <filter>@</filter>
+                                <dockerFileDir>${project.basedir}/src/main/docker</dockerFileDir>
+                                <assembly>
+                                    <descriptor>${project.basedir}/src/main/docker/distribution.xml</descriptor>
+                                </assembly>
+                            </build>
+                        </image>
+                    </images>
                 </configuration>
             </plugin>
 
@@ -157,6 +162,33 @@
                     </includes>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>1.8</version>
+                <executions>
+                    <execution>
+                        <id>package</id>
+                        <phase>package</phase>
+                        <configuration>
+                            <target>
+                                <mkdir dir="${outputDir}/external/resources" />
+                                <copy todir="${outputDir}/external/resources">
+                                    <fileset dir="${outputDir}/classes">
+                                        <include name="*.properties" />
+                                    </fileset>
+                                </copy>
+                                <copy todir="${outputDir}/external/resources">
+                                    <fileset dir="${outputDir}/classes">
+                                        <!--include sub dirs-->
+                                        <include name="**/*.properties" />
+                                    </fileset>
+                                </copy>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
 
         <resources>
@@ -166,7 +198,7 @@
             </resource>
         </resources>
         <filters>
-            <filter>src/main/resources/profiles/${build.profile.id}/config-${build.profile.id}.properties</filter>
+            <filter>src/main/resources/*.properties</filter>
         </filters>
     </build>
 
