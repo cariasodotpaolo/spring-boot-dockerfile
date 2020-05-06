@@ -12,8 +12,6 @@
     <description>Sample Configuration for Spring Boot, Docker build using Spotify's Maven plugin</description>
 
     <properties>
-        <spring.version>4.2.5.RELEASE</spring.version>
-        <spring.boot.version>1.3.1.RELEASE</spring.boot.version>
         <java.version>1.8</java.version>
         <skip.integration.test>true</skip.integration.test>
         <spring.boot.goal>repackage</spring.boot.goal>
@@ -24,11 +22,22 @@
         <image.base>${env.DOCKER_REGISTRY_HOST}/some/path/app-base-image:1.0.0</image.base>
     </properties>
 
-    <parent>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-dependencies</artifactId>
+                <version>2.1.6.RELEASE</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+    <!--<parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>1.3.1.RELEASE</version>
-    </parent>
+    </parent>-->
 
     <dependencies>
         <dependency>
@@ -40,28 +49,30 @@
             <artifactId>spring-boot-starter-tomcat</artifactId>
         </dependency>
         <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-batch</artifactId>
+        </dependency>
+        <!--<dependency>
             <groupId>javax.servlet</groupId>
             <artifactId>servlet-api</artifactId>
             <version>2.5</version>
             <scope>test</scope>
-        </dependency>
+        </dependency>-->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
-            <version>1.5.8.RELEASE</version>
             <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework</groupId>
-            <artifactId>spring-web</artifactId>
-            <version>${spring.version}</version>
         </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-lang3</artifactId>
             <version>3.5</version>
         </dependency>
-
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.8</version>
+        </dependency>
     </dependencies>
 
     <build>
